@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frog Hop Spelling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --water:#BFE7E0; --water-deep:#2B8C8C; --pad:#5DBB63; --pad-dark:#3E8E45;
+  --sun:#FFD23F; --coral:#FF6B6B; --ink:#1E3A40; --card:#FFFFFF; --soft:#E8F6F3;
+  --muted:#4F6E73;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --water:#123B3D; --water-deep:#5CC8C2; --pad:#5DBB63; --pad-dark:#2F6E35;
+    --sun:#FFD23F; --coral:#FF8585; --ink:#E8F6F3; --card:#1B2D30; --soft:#16302F;
+    --muted:#A5C4C2; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --water:#123B3D; --water-deep:#5CC8C2; --pad:#5DBB63; --pad-dark:#2F6E35;
+  --sun:#FFD23F; --coral:#FF8585; --ink:#E8F6F3; --card:#1B2D30; --soft:#16302F;
+  --muted:#A5C4C2; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;min-height:100%;background:var(--water);color:var(--ink);
+  font-family:"Baloo 2","Trebuchet MS","Comic Sans MS",system-ui,sans-serif;
+  font-size:1.15rem;line-height:1.4;
+}
+main{max-width:720px;margin:0 auto;padding:1.25rem 1rem 2.5rem}
+h1{font-size:clamp(2.2rem,7vw,3.4rem);line-height:1;margin:.25rem 0 .5rem;font-weight:800;color:var(--water-deep)}
+h2{font-size:1.8rem;margin:0 0 .5rem;line-height:1.1}
+p{margin:.25rem 0 1rem}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+.hidden{display:none!important}
+
+.intro{display:flex;gap:1rem;align-items:center;margin-bottom:1rem}
+.intro .frog{font-size:4.5rem;line-height:1;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+
+.levels{display:grid;gap:.85rem}
+.level-btn{
+  display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;text-align:left;
+  background:var(--card);border:3px solid var(--pad);border-radius:28px 28px 28px 8px;
+  padding:.9rem 1.1rem;box-shadow:0 5px 0 var(--pad-dark);transition:transform .1s;
+}
+.level-btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--pad-dark)}
+.level-num{width:3rem;height:3rem;border-radius:50%;background:var(--pad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.6rem}
+.level-btn strong{display:block;font-size:1.35rem;line-height:1.1}
+.level-btn span.desc{color:var(--muted);font-size:1rem}
+.best{font-size:1.3rem;letter-spacing:2px;white-space:nowrap}
+
+.options{margin-top:1.25rem;display:grid;gap:.75rem}
+.toggle{display:flex;align-items:center;gap:.75rem;background:var(--card);border-radius:18px;padding:.7rem 1rem;font-weight:700}
+.toggle input{width:1.6rem;height:1.6rem;accent-color:var(--water-deep)}
+details{background:var(--card);border-radius:18px;padding:.7rem 1rem}
+summary{font-weight:700;cursor:pointer}
+textarea{width:100%;min-height:6rem;font:inherit;font-size:1.05rem;border:2px solid var(--water-deep);border-radius:12px;padding:.6rem;background:var(--soft);color:var(--ink);margin:.5rem 0}
+.small-btn{background:var(--water-deep);color:#fff;border:0;border-radius:999px;padding:.35rem 1.1rem;font-weight:700}
+
+/* play */
+.hud{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap}
+.hud .score{font-weight:800;font-size:1.4rem;background:var(--sun);color:#1E3A40;border-radius:999px;padding:.1rem 1rem}
+.home-link{background:none;border:0;color:var(--water-deep);font-weight:700;padding:.2rem 0;text-decoration:underline}
+.timer{height:16px;background:var(--card);border-radius:999px;overflow:hidden;margin:.6rem 0 .25rem}
+.timer > div{height:100%;width:100%;background:var(--pad);border-radius:999px;transition:width 1s linear,background .3s}
+.timer.low > div{background:var(--coral)}
+.timer-label{font-size:.95rem;color:var(--muted);text-align:right}
+
+.pond{position:relative;display:flex;justify-content:space-between;align-items:center;padding:1.6rem .25rem .6rem;margin:.5rem 0 1rem;overflow-x:auto}
+.pad{flex:0 0 auto;width:clamp(22px,6.5vw,44px);height:clamp(16px,4.5vw,30px);background:var(--pad);border-radius:50%;position:relative;opacity:.55}
+.pad.done{opacity:1}
+.pad::after{content:"";position:absolute;right:12%;top:30%;width:22%;height:22%;background:var(--water);border-radius:50% 0 50% 50%}
+.hopper{position:absolute;top:0;left:0;font-size:clamp(1.8rem,6vw,2.6rem);line-height:1;transition:transform .45s cubic-bezier(.3,1.6,.6,1)}
+
+.card{background:var(--card);border-radius:32px;padding:1.4rem 1.2rem;text-align:center;box-shadow:0 6px 0 rgba(30,58,64,.18)}
+.clue{font-size:1.25rem;color:var(--muted);margin-bottom:1rem}
+.clue b{color:var(--ink)}
+.speak{background:var(--sun);color:#1E3A40;border:0;border-radius:999px;padding:.45rem 1.3rem;font-weight:800;font-size:1.2rem;box-shadow:0 4px 0 #D4A90F;margin-bottom:1rem}
+.speak:active{transform:translateY(3px);box-shadow:0 1px 0 #D4A90F}
+
+.slots,.tiles,.blanks{display:flex;flex-wrap:wrap;justify-content:center;gap:.45rem;margin:.6rem 0}
+.slot,.tile,.letter,.blank{
+  width:clamp(2.6rem,10vw,3.4rem);height:clamp(2.9rem,11vw,3.8rem);border-radius:14px;
+  font-size:clamp(1.6rem,6vw,2.2rem);font-weight:800;display:grid;place-items:center;
+}
+.slot{border:3px dashed var(--water-deep);background:var(--soft)}
+.slot.filled{border-style:solid;background:var(--water);cursor:pointer}
+.tile{border:0;background:var(--pad);color:#fff;box-shadow:0 4px 0 var(--pad-dark)}
+.tile:disabled{opacity:.2;box-shadow:none}
+.letter{background:var(--soft)}
+.blank{border:3px solid var(--water-deep);background:var(--card);color:var(--ink);text-align:center;padding:0;font-family:inherit}
+.blank{cursor:pointer}
+.blank.filled{background:var(--water)}
+.stage-meter{display:flex;align-items:center;justify-content:center;gap:.35rem;margin-bottom:.4rem}
+.stage-meter span{width:1.6rem;height:.7rem;border-radius:999px;background:var(--soft);border:2px solid var(--pad)}
+.stage-meter span.on{background:var(--pad)}
+.stage-meter b{margin-left:.4rem;color:var(--pad-dark)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stage-meter b{color:var(--pad)}}
+.week-bar{background:var(--card);border-radius:18px;padding:.7rem 1rem;margin-bottom:1rem}
+.week-top{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between}
+.week-top label{display:flex;gap:.5rem;align-items:center;font-weight:700;flex-wrap:wrap}
+.week-bar select{font:inherit;font-weight:700;border:2px solid var(--water-deep);border-radius:12px;padding:.15rem .5rem;background:var(--soft);color:var(--ink);max-width:100%}
+.note{color:var(--muted);font-size:1rem;margin:.3rem 0 0}
+.week-row{display:flex;justify-content:space-between;align-items:center;gap:.6rem;background:var(--card);border-radius:18px;padding:.6rem 1rem;margin-bottom:.6rem}
+.week-row .w{color:var(--muted);font-size:.95rem;overflow-wrap:anywhere}
+.week-row .acts{display:flex;gap:.4rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.small-btn.alt{background:var(--soft);color:var(--ink)}
+.small-btn.danger{background:var(--coral);color:#fff}
+.small-btn:disabled{opacity:.5}
+.editor{text-align:left;margin-top:1rem}
+.field{display:block;font-weight:700;margin-bottom:.6rem}
+.field input{display:block;width:100%;font:inherit;border:2px solid var(--water-deep);border-radius:12px;padding:.35rem .6rem;background:var(--soft);color:var(--ink);margin-top:.25rem}
+.clue-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.4rem}
+.srow{display:grid;grid-template-columns:7.5rem 1fr;gap:.5rem;align-items:center;margin-bottom:.4rem}
+.srow b{overflow-wrap:anywhere}
+.srow input{font:inherit;font-size:1rem;width:100%;border:2px solid var(--soft);border-radius:10px;padding:.3rem .5rem;background:var(--soft);color:var(--ink)}
+@media (max-width:480px){.srow{grid-template-columns:1fr;gap:.15rem;margin-bottom:.7rem}}
+.voice-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.5rem}
+.voice-row select{font:inherit;font-size:1rem;flex:1 1 14rem;min-width:0;border:2px solid var(--water-deep);border-radius:12px;padding:.3rem .5rem;background:var(--soft);color:var(--ink)}
+.type-in{font:inherit;font-size:2rem;font-weight:800;text-align:center;width:min(100%,16ch);border:3px solid var(--water-deep);border-radius:16px;padding:.3rem .5rem;background:var(--soft);color:var(--ink);letter-spacing:2px}
+.go{background:var(--water-deep);color:#fff;border:0;border-radius:999px;padding:.5rem 1.8rem;font-weight:800;font-size:1.3rem;margin-top:.8rem}
+.feedback{min-height:2.2rem;font-weight:800;font-size:1.35rem;margin-top:.6rem}
+.feedback.good{color:var(--pad-dark)}
+.feedback.bad{color:var(--coral)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .feedback.good{color:var(--pad)}}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.pop{position:fixed;left:50%;top:40%;transform:translateX(-50%);font-size:2.4rem;font-weight:800;color:var(--sun);text-shadow:0 2px 0 #9A7A00;pointer-events:none;animation:pop 1s forwards}
+@keyframes pop{to{opacity:0;transform:translate(-50%,-70px)}}
+
+/* done */
+.done-card{text-align:center}
+.big-stars{font-size:clamp(3rem,14vw,5rem);letter-spacing:6px;margin:.25rem 0}
+.missed{background:var(--soft);border-radius:18px;padding:.7rem 1rem;margin:1rem 0}
+.missed ul{list-style:none;padding:0;margin:.3rem 0 0;display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center}
+.missed li{background:var(--card);border-radius:999px;padding:.1rem .9rem;font-weight:800;font-size:1.3rem}
+.done-actions{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center}
+.done-actions .alt{background:var(--card);color:var(--water-deep);border:3px solid var(--water-deep)}
+
+/* ---------- themes ---------- */
+:root[data-skin="unicorn"]{--water:#F6E8FF;--water-deep:#8B4FD6;--pad:#FF78B5;--pad-dark:#D2468A;--soft:#FCF0FF;--ink:#3B2457;--muted:#6E5689;--card:#FFFFFF}
+:root[data-skin="dino"]{--water:#F3E7C9;--water-deep:#2E7A4B;--pad:#E8813A;--pad-dark:#B35A1B;--soft:#FBF2DE;--ink:#3A2A14;--muted:#6D5838;--card:#FFFFFF}
+@media (prefers-color-scheme:dark){
+  :root[data-skin="unicorn"]:not([data-theme="light"]){--water:#2A1840;--water-deep:#C9A2FF;--pad:#FF78B5;--pad-dark:#A8336D;--soft:#341F4D;--ink:#F7ECFF;--muted:#CDB8E6;--card:#3A2456}
+  :root[data-skin="dino"]:not([data-theme="light"]){--water:#2A2214;--water-deep:#7FCB95;--pad:#E8813A;--pad-dark:#8F4510;--soft:#33291A;--ink:#F6EBD6;--muted:#CDBB98;--card:#3A2F1E}
+}
+:root[data-skin="unicorn"][data-theme="dark"]{--water:#2A1840;--water-deep:#C9A2FF;--pad:#FF78B5;--pad-dark:#A8336D;--soft:#341F4D;--ink:#F7ECFF;--muted:#CDB8E6;--card:#3A2456}
+:root[data-skin="dino"][data-theme="dark"]{--water:#2A2214;--water-deep:#7FCB95;--pad:#E8813A;--pad-dark:#8F4510;--soft:#33291A;--ink:#F6EBD6;--muted:#CDBB98;--card:#3A2F1E}
+/* unicorn: clouds that turn rainbow */
+[data-skin="unicorn"] .pad{background:var(--card);border:3px solid var(--pad);opacity:.7}
+[data-skin="unicorn"] .pad.done{background:linear-gradient(90deg,#FF6B6B,#FFB13F,#FFE14D,#5DBB63,#4FA8FF,#B57BFF);border-color:transparent;opacity:1}
+[data-skin="unicorn"] .pad::after{display:none}
+/* dino: rocks */
+[data-skin="dino"] .pad{background:#A39079;border-radius:45% 55% 40% 60%/55% 45% 55% 45%;opacity:.6}
+[data-skin="dino"] .pad.done{background:#7A6650;opacity:1}
+[data-skin="dino"] .pad::after{display:none}
+.goal{flex:0 0 auto;font-size:clamp(1.4rem,5vw,2rem);line-height:1;margin-left:.2rem}
+.mv{display:inline-block}
+.mv.flip{transform:scaleX(-1)}
+.theme-pick{display:flex;gap:.5rem;align-items:center;background:var(--card);border-radius:18px;padding:.6rem 1rem;flex-wrap:wrap}
+.theme-pick > span{font-weight:700;margin-right:.3rem}
+@media (max-width:440px){.theme-pick > span{flex-basis:100%}}
+.theme-btn{font-size:1.8rem;line-height:1;width:3.4rem;height:3.4rem;border-radius:16px;border:3px solid transparent;background:var(--soft);padding:0}
+.theme-btn[aria-pressed="true"]{border-color:var(--water-deep);background:var(--water)}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- HOME -->
+<section id="home">
+  <div class="intro">
+    <div class="frog" id="mascot" aria-hidden="true">🐸</div>
+    <div>
+      <h1 id="title">Frog Hop Spelling</h1>
+      <p id="introText">Spell a word and Fern the frog hops to the next lily pad. Can you get her across the pond?</p>
+    </div>
+  </div>
+
+  <div class="theme-pick" style="margin-bottom:1rem" role="group" aria-label="Pick a look">
+    <span>Pick your look:</span>
+    <button class="theme-btn" data-skin="pond" aria-label="Frog pond">🐸</button>
+    <button class="theme-btn" data-skin="unicorn" aria-label="Unicorn">🦄</button>
+    <button class="theme-btn" data-skin="dino" aria-label="Dinosaur">🦖</button>
+  </div>
+  <div class="week-bar">
+    <div class="week-top">
+      <label>📚 Words: <select id="weekSelect" aria-label="Choose a word list"></select></label>
+      <button class="small-btn" id="manageBtn">✏️ Word lists</button>
+    </div>
+    <p class="note" id="weekWords"></p>
+  </div>
+
+  <div class="levels" id="levels"></div>
+
+  <div class="options">
+    <label class="toggle"><input type="checkbox" id="timedToggle" checked> ⏱️ Race the clock after 3 three-star wins on a level</label>
+  </div>
+</section>
+
+<!-- PLAY -->
+<section id="play" class="hidden">
+  <div class="hud">
+    <button class="home-link" id="quit">Back to levels</button>
+    <span id="levelName" style="font-weight:800"></span>
+    <span class="score" id="score">0</span>
+  </div>
+  <div id="timerWrap">
+    <div class="timer" id="timer"><div id="timerFill"></div></div>
+    <div class="timer-label" id="timerLabel"></div>
+  </div>
+  <div class="pond" id="pond" aria-hidden="true"></div>
+  <div class="card" id="card">
+    <button class="speak" id="speakBtn">🔊 Hear the word</button>
+    <div class="clue" id="clue"></div>
+    <div id="challenge"></div>
+    <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- DONE -->
+<section id="done" class="hidden">
+  <div class="card done-card">
+    <h2 id="doneTitle">Fern made it across!</h2>
+    <div class="big-stars" id="doneStars"></div>
+    <p id="doneScore"></p>
+    <div class="missed hidden" id="missedBox">
+      <strong>Words to practice</strong>
+      <ul id="missedList"></ul>
+    </div>
+    <div class="done-actions">
+      <button class="go" id="practiceMissed">Practice these words</button>
+      <button class="go" id="nextLevel">Next level</button>
+      <button class="go alt" id="again">Play again</button>
+      <button class="go alt" id="toHome">All levels</button>
+    </div>
+  </div>
+</section>
+
+<!-- WORD LISTS (for grown-ups) -->
+<section id="manage" class="hidden">
+  <button class="home-link" id="manageBack">Back to the game</button>
+  <h2 style="margin-top:.4rem">Word lists</h2>
+  <p class="note" id="syncNote" style="margin-bottom:1rem"></p>
+  <div id="weekList"></div>
+  <p class="feedback bad" id="manageMsg" role="status" style="min-height:0"></p>
+  <button class="go" id="addWeek">+ Add a new week</button>
+  <div class="card editor" style="margin-top:1.5rem">
+    <h2>Voice</h2>
+    <p class="note">Voices come from this device and browser, so the list is different on each one. Your pick is saved on this device.</p>
+    <div class="voice-row">
+      <select id="voiceSelect" aria-label="Choose a voice"><option value="">✨ Best available (automatic)</option></select>
+      <button class="small-btn" id="voiceTest">🔊 Test</button>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem">
+    <button class="small-btn alt" id="resetProgress">Reset progress on this device</button>
+    <p class="note">Clears stars, three-star wins and “no clock” words for every list. Word lists and her theme stay.</p>
+  </div>
+  <div class="card editor hidden" id="editor">
+    <h2 id="editorTitle">New word list</h2>
+    <label class="field">Name<input id="edName" autocomplete="off"></label>
+    <label class="field">Words (separate with spaces or commas)<textarea id="edWords" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea></label>
+    <div class="clue-head"><strong>Sentence clues</strong><button class="small-btn" id="edAI">✨ Write them for me</button></div>
+    <p class="note">Each sentence is read aloud with its word. Leave one blank to just say the word.</p>
+    <div id="edSentences" style="margin-top:.6rem"></div>
+    <div class="done-actions" style="margin-top:.6rem"><button class="go" id="edSave">Save</button><button class="go alt" id="edCancel">Cancel</button></div>
+    <div class="feedback" id="edMsg" role="status"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// Starter lists, used until lists are saved to the page
+const BUILT_IN = [
+  {id:"week1", name:"Week 1 (-ed words)", order:1,
+   words:["yelled","yanked","slumped","limped","plopped","smiled","shrugged","liked","patted","you"],
+   sentences:{
+    yelled:"Mom yelled to us from the porch.", yanked:"He yanked the rope as hard as he could.",
+    slumped:"She slumped on the couch after soccer.", limped:"The puppy limped on its sore paw.",
+    plopped:"The frog plopped into the pond.", smiled:"Grandpa smiled at the baby.",
+    shrugged:"He shrugged because he did not know.", liked:"I liked the pizza at the party.",
+    patted:"She patted the cat on its head.", you:"Thank you for the gift."}},
+  {id:"week2", name:"Week 2 (-ing words)", order:2,
+   words:["smiling","racing","hoping","baking","inviting","confusing","tasting","completing","hopping","were"],
+   sentences:{
+    smiling:"The baby is smiling at me.", racing:"The kids are racing to the swings.",
+    hoping:"I am hoping it snows tomorrow.", baking:"Dad is baking cookies for the party.",
+    inviting:"She is inviting her whole class to her party.", confusing:"This map is confusing to read.",
+    tasting:"We are tasting the soup to see if it needs salt.", completing:"He is completing his homework at the table.",
+    hopping:"The bunny is hopping across the yard.", were:"We were late for the bus."}}
+];
+const LEVELS = [
+  {name:"Unscramble", desc:"Tap the letters in the right order", secs:30},
+  {name:"Missing letters", desc:"Fill in the blanks", secs:25},
+  {name:"Spell it!", desc:"Listen, then type the whole word", secs:75}
+];
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const esc = t => String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let weeks = store.get("frogspell-weeks", null) || BUILT_IN.map(w=>({...w}));
+let currentId = store.get("frogspell-current", null);
+let db = null, dbLive = false, dbEmpty = false, sample = null;
+
+const sortedWeeks = ()=>[...weeks].sort((a,b)=>(b.order||0)-(a.order||0));
+function mixWeek(){
+  return {id:"all", name:"Mix of all weeks",
+    words:[...new Set(weeks.flatMap(w=>w.words))],
+    sentences:Object.assign({}, ...weeks.map(w=>w.sentences||{}))};
+}
+function curWeek(){
+  if(currentId==="all" && weeks.length>1) return mixWeek();
+  return weeks.find(w=>w.id===currentId) || sortedWeeks()[0] || {id:"none", name:"", words:[], sentences:{}};
+}
+const curWords = ()=>curWeek().words;
+function sentenceFor(w){
+  const c = curWeek();
+  if(c.sentences && c.sentences[w]) return c.sentences[w];
+  const other = weeks.find(x=>x.sentences && x.sentences[w]);
+  return other ? other.sentences[w] : "";
+}
+
+// stars and "no clock" words are kept separately for each word list
+let best = {}, shaky = new Set(), three = {}; // three = how many 3-star wins on each level
+function loadProgress(){
+  const id = curWeek().id, legacy = id==="week1";
+  best = store.get("frogspell-best-"+id, legacy ? store.get("frogspell-best", {}) : {});
+  shaky = new Set(store.get("frogspell-shaky-"+id, legacy ? store.get("frogspell-shaky", []) : []));
+  three = store.get("frogspell-three-"+id, {});
+}
+const saveShaky = ()=>store.set("frogspell-shaky-"+curWeek().id, [...shaky]);
+const saveBest = ()=>store.set("frogspell-best-"+curWeek().id, best);
+const saveThree = ()=>store.set("frogspell-three-"+curWeek().id, three);
+loadProgress();
+const THEMES = {
+  pond:{title:"Frog Hop Spelling", mover:"🐸", flip:false, goal:"🌸",
+    intro:"Spell a word and Fern the frog hops to the next lily pad. Can you get her across the pond?",
+    done:"Fern made it across!", cheers:["Ribbit! Great job!","You got it!","Hop hop hooray!","Super speller!"]},
+  unicorn:{title:"Unicorn Rainbow Spelling", mover:"🦄", flip:true, goal:"🌈",
+    intro:"Spell a word and Sparkle the unicorn prances to the next cloud. Can you get her to the rainbow?",
+    done:"Sparkle reached the rainbow!", cheers:["Sparkly spelling!","Magical!","Unicorn-tastic!","You got it!"]},
+  dino:{title:"Dino Stomp Spelling", mover:"🦖", flip:true, goal:"🌋",
+    intro:"Spell a word and Rex the dinosaur stomps to the next rock. Can you get him to the volcano?",
+    done:"Rex made it to the volcano!", cheers:["ROAR-some!","Dino-mite!","Stomp stomp hooray!","You got it!"]}
+};
+let skin = store.get("frogspell-skin", "pond");
+if(!THEMES[skin]) skin = "pond";
+const T = ()=>THEMES[skin];
+function applySkin(){
+  document.documentElement.setAttribute("data-skin", skin);
+  $("title").textContent = T().title; document.title = T().title;
+  $("introText").textContent = T().intro;
+  $("mascot").innerHTML = `<span class="mv ${T().flip?"flip":""}">${T().mover}</span>`;
+  document.querySelectorAll(".theme-btn").forEach(b=>b.setAttribute("aria-pressed", b.dataset.skin===skin));
+}
+document.querySelectorAll(".theme-btn").forEach(b=>b.onclick=()=>{ skin = b.dataset.skin; store.set("frogspell-skin", skin); applySkin(); });
+applySkin();
+
+let S = {}; // round state
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function show(id){["home","play","done","manage"].forEach(s=>$(s).classList.toggle("hidden",s!==id));window.scrollTo(0,0)}
+function starText(n){return "⭐".repeat(n)+"☆".repeat(3-n)}
+
+/* ---------- voices ---------- */
+// skip the joke voices some computers include
+const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|deranged|hysterical/i;
+let voices = [], voicePref = store.get("frogspell-voice", "");
+function scoreVoice(v){
+  const n = v.name; let s = 0;
+  if(/natural/i.test(n)) s += 50;
+  if(/premium/i.test(n)) s += 40;
+  if(/enhanced|neural/i.test(n)) s += 30;
+  if(/google/i.test(n)) s += 25;
+  if(/samantha|ava|zoe|allison|susan|aria|jenny/i.test(n)) s += 10;
+  if(/en[-_]US/i.test(v.lang)) s += 8;
+  return s;
+}
+const rankedVoices = ()=>[...voices].sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+function pickVoice(){
+  if(voicePref){ const v = voices.find(v=>v.voiceURI===voicePref); if(v) return v; }
+  return rankedVoices()[0] || null;
+}
+function renderVoicePicker(){
+  const sel = $("voiceSelect");
+  const best = rankedVoices()[0];
+  sel.innerHTML = `<option value="">✨ Best available (automatic${best ? ": "+esc(best.name) : ""})</option>`
+    + rankedVoices().map(v=>`<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})</option>`).join("");
+  sel.value = voices.some(v=>v.voiceURI===voicePref) ? voicePref : "";
+}
+function loadVoices(){
+  voices = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang) && !NOVELTY.test(v.name));
+  renderVoicePicker();
+}
+if("speechSynthesis" in window){
+  loadVoices();
+  speechSynthesis.addEventListener("voiceschanged", loadVoices);
+}
+$("voiceSelect").onchange = e=>{ voicePref = e.target.value; store.set("frogspell-voice", voicePref); testVoice(); };
+const testVoice = ()=>say("Let’s practice spelling. The bunny is hopping across the yard. Hopping.");
+$("voiceTest").onclick = testVoice;
+
+let sayTok = 0;
+function say(text, onDone){
+  if(!("speechSynthesis" in window)){ if(onDone) onDone(); return; }
+  const t = ++sayTok;
+  speechSynthesis.cancel();
+  // short pause after cancel so browsers don't drop the new speech; only the latest request speaks
+  setTimeout(()=>{
+    if(t !== sayTok) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = .8;
+    const v = pickVoice();
+    if(v){ u.voice = v; u.lang = v.lang; }
+    if(onDone){ u.onend = onDone; u.onerror = onDone; }
+    speechSynthesis.speak(u);
+  }, 120);
+}
+
+// say the word, spell it out, and only move on once the voice is finished
+function revealAndAdvance(){
+  const w = S.word;
+  let moved = false;
+  const go = ()=>{ if(moved) return; moved = true; later(advance, 1000); };
+  say(`${w} is spelled ${w.split("").join(", ")}. ${w}.`, go);
+  // backup in case the browser never reports that speech finished
+  later(go, 3000 + w.length * 1200);
+}
+
+// run fn later only if we're still on the same round and the same word
+let gen = 0;
+function later(fn, ms){
+  const g = gen, i = S.idx;
+  setTimeout(()=>{ if(gen === g && S.idx === i) fn(); }, ms);
+}
+function sayWord(w){
+  const s = sentenceFor(w);
+  say(s ? `${w}. ${s} ${w}.` : `${w}.`);
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const sel = $("weekSelect");
+  sel.innerHTML = sortedWeeks().map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join("")
+    + (weeks.length>1 ? `<option value="all">🔀 Mix of all weeks</option>` : "");
+  sel.value = curWeek().id;
+  $("weekWords").textContent = curWords().join(", ") || "No words yet. Tap “Word lists” to add some.";
+  const box = $("levels"); box.innerHTML = "";
+  LEVELS.forEach((L,i)=>{
+    const b = document.createElement("button");
+    b.className = "level-btn";
+    b.disabled = curWords().length < 2;
+    b.innerHTML = `<span class="level-num">${i+1}</span>
+      <span><strong>${L.name}</strong><span class="desc">${L.desc}${(three[i]||0) >= 3 ? "<br>⏱️ Racing the clock" : `<br>🐢 No clock yet: ⭐⭐⭐ wins ${three[i]||0} of 3`}</span></span>
+      <span class="best" aria-label="${best[i]||0} of 3 stars">${starText(best[i]||0)}</span>`;
+    b.onclick = ()=>startRound(i, curWords());
+    box.appendChild(b);
+  });
+}
+function setCurrent(id, fromSync){
+  currentId = id; store.set("frogspell-current", id);
+  loadProgress(); renderHome();
+  if(dbLive && !fromSync) db.doc("settings/app").set({currentId:id}).catch(()=>{});
+}
+$("weekSelect").onchange = e=>setCurrent(e.target.value);
+$("manageBtn").onclick = ()=>{ closeEditor(); renderManage(); show("manage"); };
+$("manageBack").onclick = ()=>{ renderHome(); show("home"); };
+
+/* ---------- word lists ---------- */
+const parseWords = t=>[...new Set(t.toLowerCase().split(/[\s,]+/).map(w=>w.replace(/[^a-z'-]/g,"")).filter(Boolean))];
+let editing = null, edSent = {}, armedDelete = null;
+
+function renderManage(){
+  $("syncNote").textContent = dbLive
+    ? "Lists are saved to this page, so they show up on any device where you’re signed in to Claude."
+    : "Lists are saved in this browser only.";
+  $("manageMsg").textContent = ""; $("manageMsg").className = "feedback bad";
+  $("weekList").innerHTML = sortedWeeks().map(w=>`<div class="week-row">
+      <div><strong>${esc(w.name)}</strong><div class="w">${esc(w.words.join(", "))}</div></div>
+      <div class="acts"><button class="small-btn" data-edit="${esc(w.id)}">Edit</button>
+      <button class="small-btn ${armedDelete===w.id?"danger":"alt"}" data-del="${esc(w.id)}">${armedDelete===w.id?"Tap to delete":"Delete"}</button></div>
+    </div>`).join("") || `<p class="note">No word lists yet. Add one below.</p>`;
+  $("weekList").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(weeks.find(w=>w.id===b.dataset.edit)));
+  $("weekList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>deleteWeek(b.dataset.del));
+}
+
+// the first time lists are saved to the page, copy the starter lists up too
+async function ensureDbSeeded(){
+  if(!dbLive || !dbEmpty) return;
+  for(const w of weeks){ const {id, ...body} = w; await db.doc("weeks/"+id).set(body); }
+  dbEmpty = false;
+}
+
+async function deleteWeek(id){
+  if(weeks.length <= 1){ $("manageMsg").textContent = "Keep at least one word list."; return; }
+  if(armedDelete !== id){ armedDelete = id; renderManage(); setTimeout(()=>{ if(armedDelete===id){ armedDelete=null; renderManage(); } }, 3000); return; }
+  armedDelete = null;
+  try{
+    if(dbLive){ await ensureDbSeeded(); await db.doc("weeks/"+id).delete(); }
+  }catch(e){ $("manageMsg").textContent = "Couldn’t delete that list. Try again in a moment."; return; }
+  weeks = weeks.filter(w=>w.id!==id);
+  if(!dbLive) store.set("frogspell-weeks", weeks);
+  if(currentId===id) setCurrent(sortedWeeks()[0].id); else renderHome();
+  renderManage();
+}
+
+function openEditor(w){
+  editing = w ? w.id : null;
+  $("editorTitle").textContent = w ? "Edit word list" : "New word list";
+  $("edName").value = w ? w.name : `Week ${weeks.length+1}`;
+  $("edWords").value = w ? w.words.join(", ") : "";
+  edSent = {...((w && w.sentences) || {})};
+  $("edSentences").innerHTML = "";
+  drawSentRows();
+  $("edAI").classList.toggle("hidden", !sample);
+  $("edMsg").textContent = ""; $("edMsg").className = "feedback";
+  $("editor").classList.remove("hidden"); $("addWeek").classList.add("hidden");
+  (w ? $("edWords") : $("edName")).focus();
+}
+function closeEditor(){ $("editor").classList.add("hidden"); $("addWeek").classList.remove("hidden"); }
+function edMsg(t, good){ $("edMsg").textContent = t; $("edMsg").className = "feedback " + (good ? "good" : "bad"); }
+function captureSent(){ $("edSentences").querySelectorAll("input").forEach(i=>edSent[i.dataset.w] = i.value.trim()); }
+function drawSentRows(){
+  const ws = parseWords($("edWords").value);
+  $("edSentences").innerHTML = ws.map(w=>`<label class="srow"><b>${esc(w)}</b>
+      <input data-w="${esc(w)}" value="${esc(edSent[w]||"")}" placeholder="A sentence that uses “${esc(w)}”" aria-label="Sentence for ${esc(w)}"></label>`).join("")
+    || `<p class="note">Type the words above and a sentence box appears for each one.</p>`;
+}
+$("edWords").addEventListener("input", ()=>{ captureSent(); drawSentRows(); });
+$("addWeek").onclick = ()=>openEditor(null);
+$("edCancel").onclick = closeEditor;
+
+let resetArmed = false;
+$("resetProgress").onclick = ()=>{
+  const btn = $("resetProgress");
+  if(!resetArmed){
+    resetArmed = true; btn.className = "small-btn danger"; btn.textContent = "Tap again to reset";
+    setTimeout(()=>{ if(resetArmed){ resetArmed = false; btn.className = "small-btn alt"; btn.textContent = "Reset progress on this device"; } }, 3000);
+    return;
+  }
+  resetArmed = false;
+  try{
+    Object.keys(localStorage).filter(k=>/^frogspell-(best|three|shaky)/.test(k)).forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
+  loadProgress(); renderHome();
+  btn.className = "small-btn alt"; btn.textContent = "Reset progress on this device";
+  $("manageMsg").className = "feedback good"; $("manageMsg").textContent = "Progress cleared. Fresh start!";
+};
+
+$("edAI").onclick = async ()=>{
+  if(!sample) return;
+  captureSent();
+  const ws = parseWords($("edWords").value);
+  if(!ws.length){ edMsg("Add some words first."); return; }
+  const blank = ws.filter(w=>!edSent[w]);
+  const target = blank.length ? blank : ws;
+  const btn = $("edAI"); btn.disabled = true; btn.textContent = "✨ Writing…"; $("edMsg").textContent = "";
+  try{
+    const out = await sample.json(
+`Write one short sentence for each word below. The sentences will be read aloud during a second-grade spelling test.
+Rules: each sentence uses the word exactly as written (same spelling, not another form of it), is 4 to 10 words long, uses simple everyday words, and makes the meaning clear (for example, it should be obvious whether "hoping" or "hopping" is meant). Keep them kind and kid-friendly.
+Return only a JSON object whose keys are the words and whose values are the sentences.
+Words: ${JSON.stringify(target)}`, {modelTier:"quick"});
+    let n = 0;
+    target.forEach(w=>{
+      const t = out && out[w];
+      if(typeof t === "string" && new RegExp(`(^|[^a-z])${w}([^a-z]|$)`, "i").test(t)){ edSent[w] = t.trim(); n++; }
+    });
+    drawSentRows();
+    if(n) edMsg("Done! Read them over and change anything you like.", true);
+    else edMsg("Couldn’t write them this time. You can type them in.");
+  }catch(e){
+    if(e && e.code === "not_granted"){ sample = null; btn.classList.add("hidden"); }
+    edMsg("Couldn’t write them right now. You can type them in.");
+  }finally{ btn.disabled = false; btn.textContent = "✨ Write them for me"; }
+};
+
+$("edSave").onclick = async ()=>{
+  captureSent();
+  const ws = parseWords($("edWords").value);
+  if(ws.length < 2){ edMsg("Add at least 2 words."); return; }
+  const name = $("edName").value.trim() || `Week ${weeks.length+1}`;
+  const sentences = {}; ws.forEach(w=>{ if(edSent[w]) sentences[w] = edSent[w]; });
+  const old = weeks.find(w=>w.id===editing);
+  const wk = {id: editing || ("w"+Date.now()), name, words:ws, sentences, order: old ? old.order : Date.now()};
+  const btn = $("edSave"); btn.disabled = true;
+  try{
+    if(dbLive){ await ensureDbSeeded(); const {id, ...body} = wk; await db.doc("weeks/"+wk.id).set(body); }
+  }catch(e){ btn.disabled = false; edMsg("Couldn’t save to the page. Try again in a moment."); return; }
+  btn.disabled = false;
+  weeks = weeks.filter(w=>w.id!==wk.id).concat(wk);
+  if(!dbLive) store.set("frogspell-weeks", weeks);
+  if(!editing) setCurrent(wk.id); else { loadProgress(); renderHome(); }
+  closeEditor(); renderManage();
+};
+
+/* ---------- saving to the page (syncs across devices) ---------- */
+function refreshViews(){
+  renderHome();
+  if(!$("manage").classList.contains("hidden")) renderManage();
+}
+async function connect(){
+  if(!window.claude || !window.claude.use) return;
+  const [d, smp] = await Promise.all([
+    claude.use("db").catch(()=>null),
+    claude.use("sample").catch(()=>null)
+  ]);
+  sample = smp;
+  if(!$("editor").classList.contains("hidden")) $("edAI").classList.toggle("hidden", !sample);
+  if(!d) return;
+  db = d;
+  db.collection("weeks").onSnapshot(snap=>{
+    dbLive = true;
+    dbEmpty = snap.empty;
+    if(!snap.empty){
+      weeks = snap.docs.map(doc=>{ const b = doc.data() || {};
+        return {id:doc.id, name:b.name || doc.id, order:b.order || 0, words:[...(b.words||[])], sentences:{...(b.sentences||{})}}; });
+      loadProgress();
+    }
+    refreshViews();
+  }, ()=>{});
+  db.doc("settings/app").onSnapshot(doc=>{
+    const id = doc.exists ? (doc.data()||{}).currentId : null;
+    if(id && id !== currentId) setCurrent(id, true);
+  }, ()=>{});
+}
+connect();
+
+/* ---------- round ---------- */
+function startRound(level, list){
+  gen++;
+  S = {level, list:shuffle(list), idx:0, score:0, correct:0, missed:[], l2:1, timed:$("timedToggle").checked && (three[level]||0) >= 3};
+  $("levelName").textContent = `Level ${level+1}: ${LEVELS[level].name}`;
+  $("score").textContent = "0";
+  $("timerWrap").classList.toggle("hidden", !S.timed);
+  buildPond();
+  show("play");
+  nextWord();
+}
+
+function buildPond(){
+  const p = $("pond"); p.innerHTML = "";
+  for(let i=0;i<=S.list.length;i++){const d=document.createElement("div");d.className="pad";p.appendChild(d)}
+  const g = document.createElement("div"); g.className="goal"; g.textContent=T().goal; p.appendChild(g);
+  const f = document.createElement("div"); f.className="hopper"; f.id="hopper";
+  f.innerHTML = `<span class="mv ${T().flip?"flip":""}">${T().mover}</span>`;
+  p.appendChild(f);
+  requestAnimationFrame(moveFrog);
+}
+function moveFrog(){
+  const pads = $("pond").querySelectorAll(".pad");
+  pads.forEach((p,i)=>p.classList.toggle("done", i<=S.idx));
+  const pad = pads[S.idx], f = $("hopper");
+  if(!pad||!f) return;
+  const x = pad.offsetLeft + pad.offsetWidth/2 - f.offsetWidth/2;
+  f.style.transform = `translateX(${x}px)`;
+}
+window.addEventListener("resize", ()=>{ if(!$("play").classList.contains("hidden")) moveFrog(); });
+
+function nextWord(){
+  clearInterval(S.timerId);
+  if(S.idx >= S.list.length){ finishRound(); return; }
+  S.word = S.list[S.idx]; S.tries = 0; S.locked = false;
+  $("feedback").textContent = ""; $("feedback").className = "feedback";
+  const s = sentenceFor(S.word);
+  $("clue").innerHTML = s
+    ? s.replace(new RegExp(`\\b${S.word}\\b`,"i"), "<b>______</b>")
+    : "Listen and spell the word.";
+  [renderUnscramble, renderMissing, renderType][S.level](S.word);
+  sayWord(S.word);
+  S.clockOn = S.timed && !shaky.has(S.word);
+  $("timerWrap").classList.toggle("hidden", !S.clockOn);
+  if(S.clockOn) startTimer();
+}
+
+function startTimer(){
+  S.left = LEVELS[S.level].secs;
+  const total = S.left;
+  const tick = ()=>{
+    $("timerFill").style.width = (S.left/total*100)+"%";
+    $("timer").classList.toggle("low", S.left <= 5);
+    $("timerLabel").textContent = `${S.left} seconds`;
+  };
+  tick();
+  S.timerId = setInterval(()=>{
+    S.left--; tick();
+    if(S.left <= 0){ clearInterval(S.timerId); timeUp(); }
+  },1000);
+}
+function timeUp(){
+  if(S.locked) return;
+  S.locked = true;
+  S.missed.push(S.word);
+  shaky.add(S.word); saveShaky();
+  if(S.level===1) S.l2 = Math.max(1, S.l2-1);
+  $("feedback").className = "feedback bad";
+  $("feedback").textContent = `Time’s up! It’s spelled ${S.word.toUpperCase()}`;
+  revealAndAdvance();
+}
+function advance(){ S.idx++; moveFrog(); later(nextWord, 450); }
+
+function check(attempt){
+  if(S.locked) return false;
+  if(attempt.toLowerCase() === S.word){
+    S.locked = true; clearInterval(S.timerId);
+    shaky.delete(S.word); saveShaky();
+    let pts = S.tries === 0 ? 10 : 5;
+    if(S.clockOn) pts += S.tries === 0 ? S.left : Math.floor(S.left/2);
+    S.score += pts; S.correct++;
+    $("score").textContent = S.score;
+    $("feedback").className = "feedback good";
+    $("feedback").textContent = shuffle(T().cheers)[0];
+    if(S.level===1 && S.tries===0 && S.l2<5){ S.l2++; $("feedback").textContent += ` Up to stage ${S.l2}!`; }
+    popPoints(pts);
+    later(advance, 1100);
+    return true;
+  }
+  S.tries++;
+  $("card").classList.remove("shake"); void $("card").offsetWidth; $("card").classList.add("shake");
+  if(S.tries >= 2){
+    S.locked = true; clearInterval(S.timerId);
+    S.missed.push(S.word);
+    shaky.add(S.word); saveShaky();
+    if(S.level===1) S.l2 = Math.max(1, S.l2-1);
+    $("feedback").className = "feedback bad";
+    $("feedback").textContent = `Good try! It’s spelled ${S.word.toUpperCase()}`;
+    revealAndAdvance();
+  } else {
+    $("feedback").className = "feedback bad";
+    $("feedback").textContent = "Almost! Try one more time.";
+  }
+  return false;
+}
+function popPoints(n){
+  const d = document.createElement("div"); d.className="pop"; d.textContent=`+${n}`;
+  document.body.appendChild(d); setTimeout(()=>d.remove(),1000);
+}
+
+/* ---------- level 1: unscramble ---------- */
+function renderUnscramble(w){
+  let letters = w.split("").map((ch,i)=>({ch,i}));
+  let mixed = shuffle(letters), tries = 0;
+  while(mixed.map(l=>l.ch).join("")===w && w.length>1 && tries++<20) mixed = shuffle(letters);
+  let answer = [];
+  const box = $("challenge");
+  const draw = ()=>{
+    box.innerHTML = `<div class="slots">${w.split("").map((_,i)=>
+      answer[i] ? `<button class="slot filled" data-a="${i}" aria-label="Remove ${answer[i].ch}">${answer[i].ch}</button>`
+                : `<div class="slot"></div>`).join("")}</div>
+      <div class="tiles">${mixed.map((l,k)=>
+      `<button class="tile" data-k="${k}" ${answer.includes(l)?"disabled":""}>${l.ch}</button>`).join("")}</div>`;
+    box.querySelectorAll(".tile").forEach(t=>t.onclick=()=>{
+      if(S.locked) return;
+      answer.push(mixed[+t.dataset.k]); draw();
+      if(answer.length===w.length){
+        if(!check(answer.map(l=>l.ch).join(""))){ setTimeout(()=>{ if(!S.locked){answer=[];draw();} },500); }
+      }
+    });
+    box.querySelectorAll(".slot.filled").forEach(s=>s.onclick=()=>{
+      if(S.locked) return; answer.splice(+s.dataset.a,1); draw();
+    });
+  };
+  draw();
+}
+
+/* ---------- level 2: missing letters, gets harder as she goes ---------- */
+const L2_STAGES = [null,
+  {blanks:w=>1, extras:0},
+  {blanks:w=>2, extras:1},
+  {blanks:w=>Math.round(w.length*.4), extras:2},
+  {blanks:w=>Math.round(w.length*.6), extras:3},
+  {blanks:w=>w.length-1, extras:4}
+];
+const TRICKY = "aeioudtplmnrs";
+let l2Api = null;
+
+function renderMissing(w){
+  const stage = L2_STAGES[S.l2];
+  const n = Math.min(w.length-1, Math.max(1, stage.blanks(w)));
+  const blankIdx = shuffle([...Array(w.length).keys()]).slice(0,n).sort((a,b)=>a-b);
+  const extras = shuffle(TRICKY.split("")).slice(0, stage.extras);
+  const tiles = shuffle([...blankIdx.map(i=>w[i]), ...extras]).map(ch=>({ch, used:false}));
+  const filled = {}; // blank position -> tile number
+  const box = $("challenge");
+
+  const draw = ()=>{
+    box.innerHTML = `<div class="stage-meter" aria-label="Stage ${S.l2} of 5">${[1,2,3,4,5].map(k=>`<span class="${k<=S.l2?"on":""}"></span>`).join("")}<b>Stage ${S.l2}</b></div>
+      <div class="blanks">${w.split("").map((ch,i)=> blankIdx.includes(i)
+        ? `<button class="blank ${filled[i]!==undefined?"filled":""}" data-i="${i}" aria-label="Missing letter">${filled[i]!==undefined?tiles[filled[i]].ch:""}</button>`
+        : `<div class="letter">${ch}</div>`).join("")}</div>
+      <div class="tiles">${tiles.map((t,k)=>`<button class="tile" data-k="${k}" ${t.used?"disabled":""}>${t.ch}</button>`).join("")}</div>`;
+    box.querySelectorAll(".tile").forEach(t=>t.onclick=()=>place(+t.dataset.k));
+    box.querySelectorAll(".blank.filled").forEach(b=>b.onclick=()=>clear(+b.dataset.i));
+  };
+  const place = k=>{
+    if(S.locked || tiles[k].used) return;
+    const i = blankIdx.find(i=>filled[i]===undefined);
+    if(i===undefined) return;
+    filled[i] = k; tiles[k].used = true; draw();
+    if(blankIdx.every(i=>filled[i]!==undefined)) submit();
+  };
+  const clear = i=>{
+    if(S.locked || filled[i]===undefined) return;
+    tiles[filled[i]].used = false; delete filled[i]; draw();
+  };
+  const submit = ()=>{
+    const attempt = w.split("").map((ch,i)=>blankIdx.includes(i)?tiles[filled[i]].ch:ch).join("");
+    if(!check(attempt)){
+      // after a moment, send the wrong letters back to the tile row
+      later(()=>{
+        if(S.locked) return;
+        blankIdx.forEach(i=>{ if(tiles[filled[i]].ch!==w[i]){ tiles[filled[i]].used=false; delete filled[i]; } });
+        draw();
+      }, 700);
+    }
+  };
+  l2Api = {
+    word:w,
+    typeLetter:ch=>{ const k = tiles.findIndex(t=>!t.used && t.ch===ch); if(k>=0) place(k); },
+    backspace:()=>{ const i=[...blankIdx].reverse().find(i=>filled[i]!==undefined); if(i!==undefined) clear(i); }
+  };
+  draw();
+}
+
+// keyboard still works on a computer
+document.addEventListener("keydown", e=>{
+  if($("play").classList.contains("hidden") || S.level!==1 || !l2Api || l2Api.word!==S.word) return;
+  if(/^[a-z]$/i.test(e.key)) l2Api.typeLetter(e.key.toLowerCase());
+  else if(e.key==="Backspace"){ e.preventDefault(); l2Api.backspace(); }
+});
+
+/* ---------- level 3: hear & type ---------- */
+function renderType(w){
+  const box = $("challenge");
+  box.innerHTML = `<input class="type-in" id="typeIn" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type the word">
+    <div><button class="go" id="checkBtn">Check</button></div>`;
+  const inp = $("typeIn");
+  const submit = ()=>{ const v = inp.value.trim(); if(!v) return; if(!check(v) && !S.locked){ inp.value=""; inp.focus(); } };
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") submit(); });
+  $("checkBtn").onclick = submit;
+  inp.focus();
+}
+
+/* ---------- finish ---------- */
+function finishRound(){
+  clearInterval(S.timerId);
+  const pct = S.correct / S.list.length;
+  const stars = pct >= .9 ? 3 : pct >= .6 ? 2 : 1;
+  const isFull = S.list.length === curWords().length;
+  if(isFull && stars > (best[S.level]||0)){ best[S.level] = stars; saveBest(); }
+  if(isFull && stars === 3){ three[S.level] = (three[S.level]||0) + 1; saveThree(); }
+  $("doneTitle").textContent = stars===3 ? T().done+" 🎉" : T().done;
+  $("doneStars").textContent = starText(stars);
+  $("doneScore").textContent = `You spelled ${S.correct} of ${S.list.length} words and scored ${S.score} points.`;
+  if(isFull && stars === 3){
+    const n = three[S.level];
+    $("doneScore").textContent += n === 3 ? " That’s 3 three-star wins! Now you can race the clock on this level."
+      : n < 3 ? ` That’s three-star win ${n} of 3!` : "";
+  }
+  $("missedBox").classList.toggle("hidden", !S.missed.length);
+  $("missedList").innerHTML = S.missed.map(w=>`<li>${w}</li>`).join("");
+  $("practiceMissed").classList.toggle("hidden", !S.missed.length);
+  $("nextLevel").classList.toggle("hidden", S.level >= 2);
+  show("done");
+  say(stars===3 ? "Amazing! Three stars!" : "Great work! "+T().done);
+}
+
+$("practiceMissed").onclick = ()=>startRound(S.level, S.missed);
+$("nextLevel").onclick = ()=>startRound(S.level+1, curWords());
+$("again").onclick = ()=>startRound(S.level, curWords());
+$("toHome").onclick = ()=>{ renderHome(); show("home"); };
+$("quit").onclick = ()=>{ gen++; clearInterval(S.timerId); speechSynthesis && speechSynthesis.cancel(); renderHome(); show("home"); };
+$("speakBtn").onclick = ()=>sayWord(S.word);
+
+renderHome();
+</script>
+</body>
+</html>
