@@ -6,7 +6,7 @@
 <title>Frog Hop Spelling</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --water:#BFE7E0; --water-deep:#2B8C8C; --pad:#5DBB63; --pad-dark:#3E8E45;
@@ -128,6 +128,10 @@ textarea{width:100%;min-height:6rem;font:inherit;font-size:1.05rem;border:2px so
 @media (max-width:480px){.srow{grid-template-columns:1fr;gap:.15rem;margin-bottom:.7rem}}
 .voice-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.5rem}
 .voice-row select{font:inherit;font-size:1rem;flex:1 1 14rem;min-width:0;border:2px solid var(--water-deep);border-radius:12px;padding:.3rem .5rem;background:var(--soft);color:var(--ink)}
+/* Andika: made for beginning readers, so capital I, lowercase l and 1 all look different */
+.slot,.tile,.letter,.blank,.type-in,.missed li,.spell,.clue,#weekWords{font-family:"Andika","Verdana",sans-serif}
+.slot,.tile,.letter,.blank,.type-in,.missed li,.spell{font-weight:700}
+.spell{font-size:1.15em;letter-spacing:1px}
 .type-in{font:inherit;font-size:2rem;font-weight:800;text-align:center;width:min(100%,16ch);border:3px solid var(--water-deep);border-radius:16px;padding:.3rem .5rem;background:var(--soft);color:var(--ink);letter-spacing:2px}
 .go{background:var(--water-deep);color:#fff;border:0;border-radius:999px;padding:.5rem 1.8rem;font-weight:800;font-size:1.3rem;margin-top:.8rem}
 .feedback{min-height:2.2rem;font-weight:800;font-size:1.35rem;margin-top:.6rem}
@@ -173,6 +177,7 @@ textarea{width:100%;min-height:6rem;font:inherit;font-size:1.05rem;border:2px so
 @media (max-width:440px){.theme-pick > span{flex-basis:100%}}
 .theme-btn{font-size:1.8rem;line-height:1;width:3.4rem;height:3.4rem;border-radius:16px;border:3px solid transparent;background:var(--soft);padding:0}
 .theme-btn[aria-pressed="true"]{border-color:var(--water-deep);background:var(--water)}
+.type-in{font-family:"Andika","Verdana",sans-serif}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
 }
@@ -183,6 +188,7 @@ textarea{width:100%;min-height:6rem;font:inherit;font-size:1.05rem;border:2px so
 
 <!-- HOME -->
 <section id="home">
+  <a href="index.html" class="home-link hidden" id="hubLink" style="display:inline-block;font-size:1.25rem;margin-bottom:.4rem">🏠 Home</a>
   <div class="intro">
     <div class="frog" id="mascot" aria-hidden="true">🐸</div>
     <div>
@@ -297,13 +303,21 @@ const BUILT_IN = [
     shrugged:"He shrugged because he did not know.", liked:"I liked the pizza at the party.",
     patted:"She patted the cat on its head.", you:"Thank you for the gift."}},
   {id:"week2", name:"Week 2 (-ing words)", order:2,
-   words:["smiling","racing","hoping","baking","inviting","confusing","tasting","completing","hopping","were"],
+   words:["smiling","racing","hoping","baking","inviting","confusing","tasting","competing","hopping","were"],
    sentences:{
     smiling:"The baby is smiling at me.", racing:"The kids are racing to the swings.",
     hoping:"I am hoping it snows tomorrow.", baking:"Dad is baking cookies for the party.",
     inviting:"She is inviting her whole class to her party.", confusing:"This map is confusing to read.",
-    tasting:"We are tasting the soup to see if it needs salt.", completing:"He is completing his homework at the table.",
-    hopping:"The bunny is hopping across the yard.", were:"We were late for the bus."}}
+    tasting:"We are tasting the soup to see if it needs salt.", competing:"The two teams are competing for the trophy.",
+    hopping:"The bunny is hopping across the yard.", were:"We were late for the bus."}},
+  {id:"week3", name:"Week 3 (contractions)", order:3,
+   words:["wasn't","I'll","you'll","she'll","their","it's","that's","she's","isn't","aren't"],
+   sentences:{
+    "wasn't":"The dog wasn't hungry at lunch.", "I'll":"I'll help you clean your room.",
+    "you'll":"You'll love this funny book.", "she'll":"She'll be home after soccer practice.",
+    their:"The kids put on their coats.", "it's":"It's time to go to bed.",
+    "that's":"That's my favorite song!", "she's":"She's the fastest runner in our class.",
+    "isn't":"The water isn't too cold today.", "aren't":"We aren't going to the park today."}}
 ];
 const LEVELS = [
   {name:"Unscramble", desc:"Tap the letters in the right order", secs:30},
@@ -318,8 +332,16 @@ const store = {
 };
 const esc = t => String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-let weeks = store.get("frogspell-weeks", null) || BUILT_IN.map(w=>({...w}));
+let hiddenBuiltIns = store.get("frogspell-hidden", []);
+let weeks = store.get("frogspell-weeks", null) || [];
 let currentId = store.get("frogspell-current", null);
+// add any built-in lists this device doesn't have yet (unless they were deleted here)
+const addedBuiltIns = BUILT_IN.filter(b=>!weeks.some(w=>w.id===b.id) && !hiddenBuiltIns.includes(b.id));
+addedBuiltIns.forEach(b=>weeks.push({...b, words:[...b.words], sentences:{...b.sentences}}));
+if(addedBuiltIns.length && currentId){
+  currentId = addedBuiltIns.sort((a,b)=>b.order-a.order)[0].id;   // jump to the newest list
+  store.set("frogspell-current", currentId);
+}
 let db = null, dbLive = false, dbEmpty = false, sample = null;
 
 const sortedWeeks = ()=>[...weeks].sort((a,b)=>(b.order||0)-(a.order||0));
@@ -363,8 +385,8 @@ const THEMES = {
     intro:"Spell a word and Rex the dinosaur stomps to the next rock. Can you get him to the volcano?",
     done:"Rex made it to the volcano!", cheers:["ROAR-some!","Dino-mite!","Stomp stomp hooray!","You got it!"]}
 };
-let skin = store.get("frogspell-skin", "pond");
-if(!THEMES[skin]) skin = "pond";
+let skin = store.get("frogspell-skin", "unicorn");
+if(!THEMES[skin]) skin = "unicorn";
 const T = ()=>THEMES[skin];
 function applySkin(){
   document.documentElement.setAttribute("data-skin", skin);
@@ -375,6 +397,7 @@ function applySkin(){
 }
 document.querySelectorAll(".theme-btn").forEach(b=>b.onclick=()=>{ skin = b.dataset.skin; store.set("frogspell-skin", skin); applySkin(); });
 applySkin();
+if(!window.claude) $("hubLink").classList.remove("hidden");
 
 let S = {}; // round state
 
@@ -442,7 +465,8 @@ function revealAndAdvance(){
   const w = S.word;
   let moved = false;
   const go = ()=>{ if(moved) return; moved = true; later(advance, 1000); };
-  say(`${w} is spelled ${w.split("").join(", ")}. ${w}.`, go);
+  const letters = w.split("").map(c=>c==="'" ? "apostrophe" : c==="I" ? "capital I" : c).join(", ");
+  say(`${w} is spelled ${letters}. ${w}.`, go);
   // backup in case the browser never reports that speech finished
   later(go, 3000 + w.length * 1200);
 }
@@ -487,7 +511,9 @@ $("manageBtn").onclick = ()=>{ closeEditor(); renderManage(); show("manage"); };
 $("manageBack").onclick = ()=>{ renderHome(); show("home"); };
 
 /* ---------- word lists ---------- */
-const parseWords = t=>[...new Set(t.toLowerCase().split(/[\s,]+/).map(w=>w.replace(/[^a-z'-]/g,"")).filter(Boolean))];
+const parseWords = t=>[...new Set(t.replace(/[\u2018\u2019`]/g,"'").toLowerCase().split(/[\s,]+/)
+  .map(w=>w.replace(/[^a-z'-]/g,"").replace(/^'+|'+$/g,"")).filter(Boolean)
+  .map(w=>/^i('|$)/.test(w) ? "I"+w.slice(1) : w))];
 let editing = null, edSent = {}, armedDelete = null;
 
 function renderManage(){
@@ -519,6 +545,7 @@ async function deleteWeek(id){
     if(dbLive){ await ensureDbSeeded(); await db.doc("weeks/"+id).delete(); }
   }catch(e){ $("manageMsg").textContent = "Couldn’t delete that list. Try again in a moment."; return; }
   weeks = weeks.filter(w=>w.id!==id);
+  if(BUILT_IN.some(b=>b.id===id) && !hiddenBuiltIns.includes(id)){ hiddenBuiltIns.push(id); store.set("frogspell-hidden", hiddenBuiltIns); }
   if(!dbLive) store.set("frogspell-weeks", weeks);
   if(currentId===id) setCurrent(sortedWeeks()[0].id); else renderHome();
   renderManage();
@@ -714,14 +741,15 @@ function timeUp(){
   shaky.add(S.word); saveShaky();
   if(S.level===1) S.l2 = Math.max(1, S.l2-1);
   $("feedback").className = "feedback bad";
-  $("feedback").textContent = `Time’s up! It’s spelled ${S.word.toUpperCase()}`;
+  $("feedback").innerHTML = `Time’s up! It’s spelled <span class="spell">${esc(S.word)}</span>`;
   revealAndAdvance();
 }
 function advance(){ S.idx++; moveFrog(); later(nextWord, 450); }
 
+const normSpell = t=>t.replace(/[\u2018\u2019`]/g,"'").trim().toLowerCase();
 function check(attempt){
   if(S.locked) return false;
-  if(attempt.toLowerCase() === S.word){
+  if(normSpell(attempt) === normSpell(S.word)){
     S.locked = true; clearInterval(S.timerId);
     shaky.delete(S.word); saveShaky();
     let pts = S.tries === 0 ? 10 : 5;
@@ -743,7 +771,7 @@ function check(attempt){
     shaky.add(S.word); saveShaky();
     if(S.level===1) S.l2 = Math.max(1, S.l2-1);
     $("feedback").className = "feedback bad";
-    $("feedback").textContent = `Good try! It’s spelled ${S.word.toUpperCase()}`;
+    $("feedback").innerHTML = `Good try! It’s spelled <span class="spell">${esc(S.word)}</span>`;
     revealAndAdvance();
   } else {
     $("feedback").className = "feedback bad";
@@ -836,7 +864,7 @@ function renderMissing(w){
   };
   l2Api = {
     word:w,
-    typeLetter:ch=>{ const k = tiles.findIndex(t=>!t.used && t.ch===ch); if(k>=0) place(k); },
+    typeLetter:ch=>{ const k = tiles.findIndex(t=>!t.used && t.ch.toLowerCase()===ch); if(k>=0) place(k); },
     backspace:()=>{ const i=[...blankIdx].reverse().find(i=>filled[i]!==undefined); if(i!==undefined) clear(i); }
   };
   draw();
@@ -845,7 +873,7 @@ function renderMissing(w){
 // keyboard still works on a computer
 document.addEventListener("keydown", e=>{
   if($("play").classList.contains("hidden") || S.level!==1 || !l2Api || l2Api.word!==S.word) return;
-  if(/^[a-z]$/i.test(e.key)) l2Api.typeLetter(e.key.toLowerCase());
+  if(/^[a-z'\u2019]$/i.test(e.key)) l2Api.typeLetter(e.key.replace("\u2019","'").toLowerCase());
   else if(e.key==="Backspace"){ e.preventDefault(); l2Api.backspace(); }
 });
 
