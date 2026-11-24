@@ -1,0 +1,58 @@
+// Spelling words for Unicorn Rainbow Spelling
+//
+// How to add a new week:
+//   1. Go to the bottom of this file.
+//   2. Start the week with a line that begins with #, like:   # Week 4 (long a)
+//   3. Put one word on each line. To have a sentence read aloud with it,
+//      add a | after the word and then the sentence.
+//   4. Save. The game picks up the new week the next time it opens.
+//
+// Lines that start with // (like these) are notes and are skipped.
+
+# Week 1 (-ed words)
+yelled | Mom yelled to us from the porch.
+yanked | He yanked the rope as hard as he could.
+slumped | She slumped on the couch after soccer.
+limped | The puppy limped on its sore paw.
+plopped | The frog plopped into the pond.
+smiled | Grandpa smiled at the baby.
+shrugged | He shrugged because he did not know.
+liked | I liked the pizza at the party.
+patted | She patted the cat on its head.
+you | Thank you for the gift.
+
+# Week 2 (-ing words)
+smiling | The baby is smiling at me.
+racing | The kids are racing to the swings.
+hoping | I am hoping it snows tomorrow.
+baking | Dad is baking cookies for the party.
+inviting | She is inviting her whole class to her party.
+confusing | This map is confusing to read.
+tasting | We are tasting the soup to see if it needs salt.
+competing | The two teams are competing for the trophy.
+hopping | The bunny is hopping across the yard.
+were | We were late for the bus.
+
+# Week 3 (contractions)
+wasn't | The dog wasn't hungry at lunch.
+I'll | I'll help you clean your room.
+you'll | You'll love this funny book.
+she'll | She'll be home after soccer practice.
+their | The kids put on their coats.
+it's | It's time to go to bed.
+that's | That's my favorite song!
+she's | She's the fastest runner in our class.
+isn't | The water isn't too cold today.
+aren't | We aren't going to the park today.
+
+# Week 4 (ar, or, er words)
+short | My little brother is too short to reach the shelf.
+mark | Put a check mark next to your name.
+started | It started to rain at recess.
+backyard | We played tag in the backyard.
+some | Can I have some grapes, please?
+sister | My sister and I built a blanket fort.
+letter | I wrote a letter to Grandma.
+expert | She is an expert at jumping rope.
+born | The puppies were born last night.
+sports | Soccer and basketball are my favorite sports.

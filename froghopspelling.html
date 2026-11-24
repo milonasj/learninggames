@@ -338,11 +338,71 @@ let currentId = store.get("frogspell-current", null);
 // add any built-in lists this device doesn't have yet (unless they were deleted here)
 const addedBuiltIns = BUILT_IN.filter(b=>!weeks.some(w=>w.id===b.id) && !hiddenBuiltIns.includes(b.id));
 addedBuiltIns.forEach(b=>weeks.push({...b, words:[...b.words], sentences:{...b.sentences}}));
-if(addedBuiltIns.length && currentId){
+if(addedBuiltIns.length && currentId && !store.get("frogspell-seen", null)){   // skip once words.txt is in use
   currentId = addedBuiltIns.sort((a,b)=>b.order-a.order)[0].id;   // jump to the newest list
   store.set("frogspell-current", currentId);
 }
 let db = null, dbLive = false, dbEmpty = false, sample = null;
+
+/* ---------- words.txt (the word file on the website) ----------
+   "# Week 4 (long a)" starts a list; each line after it is "word | sentence".
+   Lines starting with // are notes and are skipped. New weeks go at the bottom. */
+function idFor(name, used){
+  const m = name.match(/^week\s*(\d+)/i);
+  let id = m ? "week"+m[1] : "f-"+(name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "list");
+  let n = 2, base = id; while(used.has(id)) id = base+"-"+(n++);
+  used.add(id); return id;
+}
+function parseWordFile(text){
+  const lists = [], used = new Set(); let cur = null;
+  text.replace(/^\uFEFF/,"").split(/\r?\n/).forEach(raw=>{
+    const line = raw.trim();
+    if(!line || line.startsWith("//")) return;
+    if(line.startsWith("#")){
+      const name = line.replace(/^#+/,"").trim() || `Week ${lists.length+1}`;
+      cur = {id:idFor(name, used), name, words:[], sentences:{}, order:lists.length+1, src:"file"};
+      lists.push(cur); return;
+    }
+    if(!cur){ cur = {id:idFor("Words", used), name:"Words", words:[], sentences:{}, order:lists.length+1, src:"file"}; lists.push(cur); }
+    const bar = line.indexOf("|");
+    const w = parseWords(bar<0 ? line : line.slice(0,bar))[0];
+    if(!w || cur.words.includes(w)) return;
+    cur.words.push(w);
+    const sent = bar<0 ? "" : line.slice(bar+1).trim().replace(/[\u2018\u2019]/g,"'");
+    if(sent) cur.sentences[w] = sent;
+  });
+  return lists.filter(l=>l.words.length);
+}
+const localOnly = ()=>weeks.filter(w=>w.src!=="file" && /^w\d+$/.test(w.id));
+const saveLocalWeeks = ()=>store.set("frogspell-weeks", weeks.filter(w=>w.src!=="file"));
+let fileStatus = "none"; // "live", "saved" (last copy, website not reachable) or "none"
+function useFileLists(lists){
+  const seen = store.get("frogspell-seen", null);
+  weeks = lists.concat(localOnly());
+  const fresh = seen ? lists.filter(l=>!seen.includes(l.id)) : [];
+  store.set("frogspell-seen", lists.map(l=>l.id));
+  if(fresh.length) currentId = fresh[fresh.length-1].id;            // jump to a newly added week
+  else if(!weeks.some(w=>w.id===currentId) && currentId!=="all") currentId = sortedWeeks()[0].id;
+  store.set("frogspell-current", currentId);
+  loadProgress();
+}
+async function loadWordFile(){
+  if(window.claude) return;                 // running inside Claude: lists come from the page instead
+  try{
+    const r = await fetch("words.txt?t="+Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    const text = await r.text();
+    const lists = parseWordFile(text);
+    if(!lists.length) throw new Error("empty");
+    store.set("frogspell-file", text);
+    fileStatus = "live"; useFileLists(lists);
+  }catch(e){
+    const saved = store.get("frogspell-file", null);
+    const lists = saved ? parseWordFile(saved) : [];
+    if(lists.length){ fileStatus = "saved"; useFileLists(lists); }
+  }
+  refreshViews();
+}
 
 const sortedWeeks = ()=>[...weeks].sort((a,b)=>(b.order||0)-(a.order||0));
 function mixWeek(){
@@ -519,12 +579,14 @@ let editing = null, edSent = {}, armedDelete = null;
 function renderManage(){
   $("syncNote").textContent = dbLive
     ? "Lists are saved to this page, so they show up on any device where you’re signed in to Claude."
+    : fileStatus==="live" ? "📄 lists come from words.txt on the website. To change them, edit that file. Lists you add here stay on this device only."
+    : fileStatus==="saved" ? "Couldn’t reach words.txt, so these are the 📄 lists from the last time it loaded. Lists you add here stay on this device only."
     : "Lists are saved in this browser only.";
   $("manageMsg").textContent = ""; $("manageMsg").className = "feedback bad";
   $("weekList").innerHTML = sortedWeeks().map(w=>`<div class="week-row">
-      <div><strong>${esc(w.name)}</strong><div class="w">${esc(w.words.join(", "))}</div></div>
-      <div class="acts"><button class="small-btn" data-edit="${esc(w.id)}">Edit</button>
-      <button class="small-btn ${armedDelete===w.id?"danger":"alt"}" data-del="${esc(w.id)}">${armedDelete===w.id?"Tap to delete":"Delete"}</button></div>
+      <div><strong>${w.src==="file"?"📄 ":""}${esc(w.name)}</strong><div class="w">${esc(w.words.join(", "))}</div></div>
+      ${w.src==="file" ? `<div class="acts"><span class="note">In words.txt</span></div>` : `<div class="acts"><button class="small-btn" data-edit="${esc(w.id)}">Edit</button>
+      <button class="small-btn ${armedDelete===w.id?"danger":"alt"}" data-del="${esc(w.id)}">${armedDelete===w.id?"Tap to delete":"Delete"}</button></div>`}
     </div>`).join("") || `<p class="note">No word lists yet. Add one below.</p>`;
   $("weekList").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(weeks.find(w=>w.id===b.dataset.edit)));
   $("weekList").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>deleteWeek(b.dataset.del));
@@ -546,7 +608,7 @@ async function deleteWeek(id){
   }catch(e){ $("manageMsg").textContent = "Couldn’t delete that list. Try again in a moment."; return; }
   weeks = weeks.filter(w=>w.id!==id);
   if(BUILT_IN.some(b=>b.id===id) && !hiddenBuiltIns.includes(id)){ hiddenBuiltIns.push(id); store.set("frogspell-hidden", hiddenBuiltIns); }
-  if(!dbLive) store.set("frogspell-weeks", weeks);
+  if(!dbLive) saveLocalWeeks();
   if(currentId===id) setCurrent(sortedWeeks()[0].id); else renderHome();
   renderManage();
 }
@@ -636,7 +698,7 @@ $("edSave").onclick = async ()=>{
   }catch(e){ btn.disabled = false; edMsg("Couldn’t save to the page. Try again in a moment."); return; }
   btn.disabled = false;
   weeks = weeks.filter(w=>w.id!==wk.id).concat(wk);
-  if(!dbLive) store.set("frogspell-weeks", weeks);
+  if(!dbLive) saveLocalWeeks();
   if(!editing) setCurrent(wk.id); else { loadProgress(); renderHome(); }
   closeEditor(); renderManage();
 };
@@ -921,6 +983,7 @@ $("quit").onclick = ()=>{ gen++; clearInterval(S.timerId); speechSynthesis && sp
 $("speakBtn").onclick = ()=>sayWord(S.word);
 
 renderHome();
+loadWordFile();
 </script>
 </body>
 </html>
